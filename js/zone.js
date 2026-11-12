@@ -226,10 +226,12 @@
     /* ---- 遊戲流程 ---- */
     startGame() {
       const S = LG.settings.data;
-      const levels = LG.LEVELS.filter((L, i) => S.levels[i]);
+      let idx = LG.LEVELS.map((L, i) => i).filter(i => S.levels[i]);
+      if (!idx.length) idx = LG.LEVELS.map((L, i) => i);
       this.cfg = {
-        time: S.time, penalty: S.penalty, base: S.base, difficulty: S.difficulty,
-        levels: levels.length ? levels : LG.LEVELS.slice()
+        time: S.time, penalty: S.penalty, base: S.base,
+        levels: idx.map(i => LG.LEVELS[i]),
+        diffs: idx.map(i => S.diffs[i] || 'normal')   // 每關各自的難度
       };
       this.results = [];
       this.score = 0;
@@ -290,7 +292,7 @@
       this.lastSec = null;
       this.meta = L.meta;
       this.inner.style.setProperty('--uc', U.UNIT_HEX[L.meta.unit]);
-      const q = L.pick(this.cfg.difficulty);
+      const q = L.pick(this.cfg.diffs[this.li]);
       const scr = this.buildLevelScreen(L.meta);
       this.screenHost.appendChild(scr.root);
       this.screen = scr.root;
@@ -442,7 +444,7 @@
       const h = this.scr.hint;
       h.className = 'lv-hint on';
       h.innerHTML = `<span class="hi">!</span><div class="hb">${this.level.hintHTML()}</div>`;
-      U.fit(h, 0.55);
+      U.fit(h, 0.5, false, true);
     }
 
     showAnswer() {
@@ -450,7 +452,7 @@
       const h = this.scr.hint;
       h.className = 'lv-hint answer';
       h.innerHTML = `<span class="hi">✓</span><div class="hb"><b>正解</b>　${this.level.answerHTML()}</div>`;
-      U.fit(h, 0.5);
+      U.fit(h, 0.5, false, true);
     }
 
     toast(t1, t2, type) {

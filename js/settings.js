@@ -5,10 +5,10 @@
 
   const DEFAULTS = {
     time: 45,             // 每關秒數 30～60
-    difficulty: 'normal', // easy / normal / hard
+    diffs: new Array(8).fill('normal'), // 每關難度：easy / normal / hard
     penalty: 10,          // 求救卡扣秒
     base: 15,             // 答對基本分
-    levels: [true, true, true, true, true, true],
+    levels: new Array(8).fill(true),    // 啟用哪些關卡
     dragDist: 'mid',      // 拖曳啟動距離
     tapTol: 'mid',        // 點擊容錯範圍
     palm: 'normal',       // 手掌誤觸過濾
@@ -21,10 +21,10 @@
 
   const VALID = {
     time: v => [30, 35, 40, 45, 50, 55, 60].includes(v),
-    difficulty: v => ['easy', 'normal', 'hard'].includes(v),
+    diffs: v => Array.isArray(v) && v.length === 8 && v.every(x => ['easy', 'normal', 'hard'].includes(x)),
     penalty: v => [5, 10, 15].includes(v),
     base: v => [10, 15, 20].includes(v),
-    levels: v => Array.isArray(v) && v.length === 6 && v.every(b => typeof b === 'boolean') && v.some(Boolean),
+    levels: v => Array.isArray(v) && v.length === 8 && v.every(b => typeof b === 'boolean') && v.some(Boolean),
     dragDist: v => ['small', 'mid', 'large'].includes(v),
     tapTol: v => ['small', 'mid', 'large'].includes(v),
     palm: v => ['off', 'normal', 'strict'].includes(v),
@@ -42,6 +42,8 @@
     try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
     const d = JSON.parse(JSON.stringify(DEFAULTS));
     Object.keys(DEFAULTS).forEach(k => { if (k in saved && VALID[k](saved[k])) d[k] = saved[k]; });
+    // 舊版（全部關卡同一難度）的設定：套用到每一關
+    if (!('diffs' in saved) && ['easy', 'normal', 'hard'].includes(saved.difficulty)) d.diffs = new Array(8).fill(saved.difficulty);
     S.data = d;
   };
 

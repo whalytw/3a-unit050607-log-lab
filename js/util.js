@@ -70,11 +70,13 @@ window.LG = window.LG || {};
   };
 
   /* 內容太多時逐步縮小字級，確保不需要捲動 */
-  U.fit = (el, min, widthOnly) => {
+  U.fit = (el, min, widthOnly, strict) => {
     if (!el || !el.parentElement) return;
     min = min || 0.62;
     el.style.fontSize = '';
-    const over = () => el.scrollWidth > el.clientWidth + 1 || (!widthOnly && el.scrollHeight > el.clientHeight + 1);
+    // KaTeX 的分數、根號常有幾個像素固定外凸，縮字也不會消失；超出幅度很小時視為放得下
+    const tol = n => (strict ? 1 : Math.max(4, n * 0.04));
+    const over = () => el.scrollWidth > el.clientWidth + tol(el.clientWidth) || (!widthOnly && el.scrollHeight > el.clientHeight + tol(el.clientHeight));
     if (!over()) return;
     const pf = parseFloat(getComputedStyle(el.parentElement).fontSize) || 16;
     const f = (parseFloat(getComputedStyle(el).fontSize) || pf) / pf;

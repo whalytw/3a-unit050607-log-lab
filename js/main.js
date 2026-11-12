@@ -35,6 +35,7 @@
 
   LG.settings.onChange(k => {
     if (k === 'volume' || k === '*') LG.audio.setVolume(LG.settings.data.volume);
+    LG.teacherBar.refresh();
   });
 
   // 第一次觸控時啟用音效（瀏覽器規定要有使用者操作）

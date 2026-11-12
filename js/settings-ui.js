@@ -65,14 +65,19 @@
     const cg = root.querySelector('.c-game');
     cg.append(
       seg('每關秒數', 'time', [30, 35, 40, 45, 50, 55, 60].map(v => ({ v, t: String(v) }))),
-      seg('難度', 'difficulty', [{ v: 'easy', t: '簡單' }, { v: 'normal', t: '標準' }, { v: 'hard', t: '挑戰' }]),
       seg('求救卡扣秒', 'penalty', [5, 10, 15].map(v => ({ v, t: v + ' 秒' }))),
       seg('答對基本分', 'base', [10, 15, 20].map(v => ({ v, t: v + ' 分' })))
     );
-    const lv = U.el('div', 'st-row');
-    lv.innerHTML = '<div class="st-label">關卡<small>可只複習部分單元，至少保留一關</small></div><div class="lv-grid"></div>';
-    const grid = lv.querySelector('.lv-grid');
+    // 關卡與難度：每關可單獨開關、單獨設定難度
+    const DIFFS = [{ v: 'easy', t: '簡單' }, { v: 'normal', t: '標準' }, { v: 'hard', t: '挑戰' }];
+    const lv = U.el('div', 'st-row lv-block');
+    lv.innerHTML = `<div class="st-label">關卡與難度<small>點關卡名稱開／關該關（至少保留一關），右邊選該關難度</small></div>
+      <div class="lv-all"><span>全部設為</span></div><div class="lv-list"></div>`;
+    const allBox = lv.querySelector('.lv-all');
+    DIFFS.forEach(o => allBox.appendChild(button(o.t, () => { S.set('diffs', new Array(8).fill(o.v)); render(); flash(`全部關卡設為「${o.t}」`); }, 'sm')));
+    const list = lv.querySelector('.lv-list');
     levelBtns = LG.LEVELS.map((L, i) => {
+      const row = U.el('div', 'lv-row');
       const b = U.el('div', 'lv-tg', `<b>${L.meta.id}</b><span>${L.meta.name}</span><small>單元 ${L.meta.unit}</small>`);
       I.onTap(b, () => {
         const next = S.data.levels.slice();
@@ -81,8 +86,16 @@
         S.set('levels', next);
         render();
       });
-      grid.appendChild(b);
-      return b;
+      const sg = U.el('div', 'seg lv-diff');
+      DIFFS.forEach(o => {
+        const d = U.el('div', 'seg-b', o.t);
+        d.dataset.v = o.v;
+        I.onTap(d, () => { const next = S.data.diffs.slice(); next[i] = o.v; S.set('diffs', next); render(); });
+        sg.appendChild(d);
+      });
+      row.append(b, sg);
+      list.appendChild(row);
+      return { b, sg, row };
     });
     cg.appendChild(lv);
 
@@ -135,7 +148,11 @@
     segs.forEach(({ row, key }) => {
       row.querySelectorAll('.seg-b').forEach(b => b.classList.toggle('on', b.dataset.v === String(S.data[key])));
     });
-    levelBtns.forEach((b, i) => b.classList.toggle('on', S.data.levels[i]));
+    levelBtns.forEach(({ b, sg, row }, i) => {
+      b.classList.toggle('on', S.data.levels[i]);
+      row.classList.toggle('off', !S.data.levels[i]);
+      sg.querySelectorAll('.seg-b').forEach(x => x.classList.toggle('on', x.dataset.v === S.data.diffs[i]));
+    });
     classEl.textContent = String(S.data.classSize);
     const e = estimate();
     const mmss = s => `${Math.floor(s / 60)} 分 ${String(Math.round(s % 60)).padStart(2, '0')} 秒`;

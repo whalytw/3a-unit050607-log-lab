@@ -61,7 +61,9 @@
   TB.refresh = () => {
     const d = LG.settings.data;
     const n = d.levels.filter(Boolean).length;
-    TB.info.textContent = `難度 ${DIFF[d.difficulty]}　每關 ${d.time} 秒　共 ${n} 關`;
+    const used = d.diffs.filter((x, i) => d.levels[i]);
+    const diff = used.every(x => x === used[0]) ? DIFF[used[0]] : '各關自訂';
+    TB.info.textContent = `難度 ${diff}　每關 ${d.time} 秒　共 ${n} 關`;
   };
 
   LG.teacherBar = TB;
